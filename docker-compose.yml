@@ -1,0 +1,64 @@
+services:
+  frontend:
+    build: ./apps/frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./apps/frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - WDS_SOCKET_HOST=0.0.0.0
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    # depends_on:
+    #   - backend
+    networks:
+      - public
+    env_file:
+      - ./apps/frontend/.env
+
+  # backend:
+  #   build: ./apps/backend
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./apps/backend:/usr/src/app
+  #     - /usr/src/app/node_modules
+  #   depends_on:
+  #     - db
+  #   networks:
+  #     - public
+  #     - private
+  #   env_file:
+  #     - ./apps/backend/.env
+
+#   db:
+#     image: postgres
+#     restart: always
+#     env_file:
+#       - ./database.env
+#     volumes:
+#       - db_data:/var/lib/postgresql/data
+#     ports:
+#       - "5432:5432"
+#     networks:
+#       - private
+#       - public
+
+#   adminer:
+#     image: adminer
+#     restart: always
+#     ports:
+#       - "8081:8080"
+#     depends_on:
+#       - db
+#     networks:
+#       - public
+#       - private
+
+# volumes:
+#   db_data:
+
+networks:
+  public:
+  private:
