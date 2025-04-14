@@ -1,12 +1,22 @@
 import { FC } from "react";
+import { LinkItem } from "../../types/link-item";
+import { Navigation } from "../UI/Navigation";
+import { RoutesPath } from "../../enums/routes-path";
+
+const navigates: LinkItem[] = [
+  { name: "Main page", link: RoutesPath.MAIN },
+  { name: "Library", link: RoutesPath.LIBRARY },
+  { name: "Sign in", link: RoutesPath.SIGN_IN },
+  { name: "Sign up", link: RoutesPath.SIGN_UP },
+];
 
 export const Header: FC = () => {
   return (
-    <header className="bg-gray-300 p-5">
-      <div className="flex justify-around">
-        <h3>Site logo</h3>
-        <h3>User bobr</h3>
-      </div>
+    <header className="flex justify-around items-center w-full p-4 bg-gray-300">
+      <Navigation
+        menuItems={navigates}
+        className={(isActive) => (isActive ? "font-bold text-md" : "text-sm")}
+      />
     </header>
   );
 };
