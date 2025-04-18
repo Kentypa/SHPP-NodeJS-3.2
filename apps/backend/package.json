@@ -4,20 +4,37 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "npx tsx ./server.ts"
+    "start": "npx tsx ./src/index.ts",
+    "typeorm": "typeorm-ts-node-commonjs",
+    "build": "tsc",
+    "seed:run": "ts-node ./node_modules/typeorm-extension/bin/cli.cjs seed:run  -d src/data-source.ts",
+    "seed:create": "ts-node ./node_modules/typeorm-extension/bin/cli.cjs seed:create"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@types/typescript": "^2.0.0",
+    "body-parser": "^2.2.0",
+    "class-validator": "^0.14.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "pg": "^8.14.1",
+    "reflect-metadata": "^0.2.2",
     "tsx": "^4.19.3",
+    "typeorm": "0.3.22",
+    "typeorm-extension": "^3.7.1",
     "typescript": "^5.8.3"
   },
   "devDependencies": {
+    "@types/body-parser": "^1.19.5",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
-    "@types/node": "^22.14.1"
+    "@types/node": "^22.14.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
   }
 }
