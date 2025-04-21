@@ -1,4 +1,55 @@
+version: "3.8"
+
 services:
+  db:
+    image: postgres
+    restart: always
+    env_file:
+      - ./database.env
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - private
+      - public
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8081:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - public
+      - private
+
+  backend:
+    build: ./apps/backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/backend:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+      adminer:
+        condition: service_started
+    networks:
+      - public
+      - private
+    env_file:
+      - ./apps/backend/.env
+
   frontend:
     build: ./apps/frontend
     ports:
@@ -16,45 +67,6 @@ services:
       - public
     env_file:
       - ./apps/frontend/.env
-
-  backend:
-    build: ./apps/backend
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./apps/backend:/usr/src/app
-      - /usr/src/app/node_modules
-    depends_on:
-      - db
-    networks:
-      - public
-      - private
-    env_file:
-      - ./apps/backend/.env
-
-  db:
-    image: postgres
-    restart: always
-    env_file:
-      - ./database.env
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    networks:
-      - private
-      - public
-
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - "8081:8080"
-    depends_on:
-      - db
-    networks:
-      - public
-      - private
 
 volumes:
   db_data:

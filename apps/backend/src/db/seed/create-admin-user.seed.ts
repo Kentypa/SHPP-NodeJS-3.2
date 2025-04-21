@@ -13,7 +13,7 @@ export default class AdminSeeder implements Seeder {
 
     if (!adminExists) {
       await userRepository.insert({
-        email: "admin@admin.com",
+        email: "admin@gmail.com",
         password: "admin",
         role: Role.ADMIN,
       });

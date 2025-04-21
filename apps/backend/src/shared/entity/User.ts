@@ -14,7 +14,4 @@ export class User {
 
   @Column({ type: "smallint", default: Role.USER })
   role: Role;
-
-  @Column({ type: "varchar", length: 150, nullable: true })
-  refreshToken: string;
 }

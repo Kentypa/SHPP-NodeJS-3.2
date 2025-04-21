@@ -7,7 +7,6 @@ const navigates: LinkItem[] = [
   { name: "Main page", link: RoutesPath.MAIN },
   { name: "Library", link: RoutesPath.LIBRARY },
   { name: "Sign in", link: RoutesPath.SIGN_IN },
-  { name: "Sign up", link: RoutesPath.SIGN_UP },
 ];
 
 export const Header: FC = () => {
