@@ -1,10 +1,11 @@
 declare module "express" {
   interface Request {
     addition: "a" | "b";
-    body: unknown;
+    body: any;
     cookies: unknown;
     route: unknown;
     signedCookies: unknown;
+    file: { filename: string };
   }
 }
 

@@ -24,7 +24,7 @@ export function useForm(
   );
 
   const handleChangeByValue = useCallback(
-    (name: string, value: string | number) => {
+    (name: string, value: string | number | File) => {
       setFormState((prevState) => {
         if (prevState[name] !== value) {
           return { ...prevState, [name]: value };

@@ -10,7 +10,7 @@ export const signIn = async (req: Request, res: Response) => {
     if (!email || !password) {
       return res.status(400).send({
         success: false,
-        message: "Email and password are required",
+        error: "Email and password are required",
       });
     }
 
@@ -20,7 +20,7 @@ export const signIn = async (req: Request, res: Response) => {
     if (!user || user.password !== password) {
       return res
         .status(401)
-        .send({ success: false, message: "Invalid credentials" });
+        .send({ success: false, error: "Invalid credentials" });
     }
 
     const credentials = `${email}:${password}`;
@@ -34,7 +34,7 @@ export const signIn = async (req: Request, res: Response) => {
     console.error("Authentication error:", error);
     return res
       .status(500)
-      .send({ success: false, message: "Internal server error" });
+      .send({ success: false, error: "Internal server error" });
   }
 };
 
@@ -47,6 +47,6 @@ export const logout = async (req: Request, res: Response) => {
     console.error("Authentication error:", error);
     return res
       .status(500)
-      .send({ success: false, message: "Internal server error" });
+      .send({ success: false, error: "Internal server error" });
   }
 };
