@@ -9,9 +9,7 @@ export const ProtectedRoute: React.FC = memo(() => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await api.get("/api/v1/", {
-          params: { action: "validate" },
-        });
+        const response = await api.get("/api/v1/validate");
 
         if (response.status === 200) {
           setIsAuthenticated(true);

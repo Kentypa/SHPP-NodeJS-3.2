@@ -4,8 +4,11 @@ import { useForm } from "../../hooks/use-form";
 import { FormObject } from "../../types/form-object";
 import { authService } from "../../services/auth-service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router";
 
 export const SignInPage: FC = () => {
+  const navigate = useNavigate();
+
   const queryClient = useQueryClient();
 
   const { signIn } = authService("api/v1/");
@@ -14,6 +17,7 @@ export const SignInPage: FC = () => {
     mutationFn: signIn,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["auth"] });
+      navigate("/admin");
     },
   });
 

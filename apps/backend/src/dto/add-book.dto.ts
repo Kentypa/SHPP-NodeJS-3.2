@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsString, IsArray } from "class-validator";
 
 export class AddBookDto {
   @IsString()
@@ -12,4 +12,7 @@ export class AddBookDto {
   @IsString()
   @IsNotEmpty()
   description: string;
+
+  @IsArray()
+  authors: string[];
 }

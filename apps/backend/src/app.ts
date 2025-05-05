@@ -3,7 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import corsOptions from "./config/cors.config";
-import router from "./routes";
+import router from "./routes/index";
 import path from "node:path";
 
 const app = express();

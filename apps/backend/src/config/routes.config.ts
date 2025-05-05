@@ -1,12 +1,10 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { logout, signIn } from "../services/authService.service";
 import { basicAuth } from "../middleware/basic-auth.middleware";
-import { upload } from "../middleware/upload.middleware";
-import { addBook } from "../services/bookService.service";
+import { addBook, getBooks } from "../services/bookService.service";
+import { uploadMiddleware } from "./multer.config";
 
-type RouteHandler = (req: Request, res: Response, next: NextFunction) => void;
-
-export const routerHandler: Record<string, RouteHandler[]> = {
+export const routerHandler = {
   ["sign-in"]: [signIn],
   ["logout"]: [basicAuth, logout],
   ["validate"]: [
@@ -15,5 +13,6 @@ export const routerHandler: Record<string, RouteHandler[]> = {
       res.send({ success: true });
     },
   ],
-  ["add-book"]: [upload.single("image"), addBook],
+  ["add-book"]: [basicAuth, uploadMiddleware.single("coverImage"), addBook],
+  ["get-books"]: [getBooks],
 };

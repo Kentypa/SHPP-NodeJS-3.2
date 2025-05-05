@@ -1,3 +1,139 @@
 import { Request, Response } from "express";
+import { AppDataSource } from "../data-source";
+import { Book } from "../shared/entity/Book";
+import { Author } from "../shared/entity/Author";
+import { validate } from "class-validator";
+import { AddBookDto } from "../dto/add-book.dto";
 
-export const addBook = async (req: Request, res: Response) => {};
+export const addBook = async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send({
+        success: false,
+        error: "Book image is required",
+      });
+    }
+
+    const bookDto = new AddBookDto();
+    bookDto.name = req.body.name;
+    bookDto.year = req.body.year;
+    bookDto.description = req.body.description;
+
+    const authors = [];
+    if (Array.isArray(req.body.authors)) {
+      authors.push(...req.body.authors.filter(Boolean));
+    } else {
+      for (const key in req.body) {
+        if (key.startsWith("authors[")) {
+          const authorName = req.body[key];
+          if (authorName) {
+            authors.push(authorName);
+          }
+        }
+      }
+    }
+    bookDto.authors = authors;
+
+    const errors = await validate(bookDto);
+    if (errors.length > 0) {
+      return res.status(400).send({
+        success: false,
+        error: errors.map((e) => Object.values(e.constraints)).flat(),
+      });
+    }
+
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const authorRepository = queryRunner.manager.getRepository(Author);
+      const bookRepository = queryRunner.manager.getRepository(Book);
+
+      const book = new Book();
+      book.name = bookDto.name;
+      book.year = bookDto.year;
+      book.description = bookDto.description;
+      book.image = `/uploads/${req.file.filename}`;
+      book.totalClick = 0;
+
+      book.authors = [];
+
+      for (const authorName of bookDto.authors) {
+        let author = await authorRepository.findOne({
+          where: { name: authorName },
+        });
+
+        if (!author) {
+          author = new Author();
+          author.name = authorName;
+          author = await authorRepository.save(author);
+        }
+
+        book.authors.push(author);
+      }
+
+      const savedBook = await bookRepository.save(book);
+
+      console.log("Saved book with authors:", {
+        id: savedBook.id,
+        name: savedBook.name,
+        authors: savedBook.authors.map((a) => ({ id: a.id, name: a.name })),
+      });
+
+      await queryRunner.commitTransaction();
+
+      return res.status(201).send({
+        success: true,
+        book: {
+          id: book.id,
+          name: book.name,
+          year: book.year,
+          description: book.description,
+          image: book.image,
+          authors: book.authors.map((a) => a.name),
+        },
+      });
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      console.error("Transaction error:", error);
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  } catch (error) {
+    console.error("Error adding book:", error);
+    return res
+      .status(500)
+      .send({ success: false, error: "Internal server error" });
+  }
+};
+
+export const getBooks = async (req: Request, res: Response) => {
+  try {
+    const bookRepository = AppDataSource.getRepository(Book);
+
+    const books = await bookRepository
+      .createQueryBuilder("book")
+      .leftJoinAndSelect("book.authors", "author")
+      .getMany();
+
+    return res.send({
+      success: true,
+      books: books.map((book) => ({
+        id: book.id,
+        name: book.name,
+        year: book.year,
+        description: book.description,
+        image: book.image,
+        totalClick: book.totalClick,
+        authors: book.authors.map((a) => a.name),
+      })),
+    });
+  } catch (error) {
+    console.error("Error getting books:", error);
+    return res
+      .status(500)
+      .send({ success: false, error: "Internal server error" });
+  }
+};

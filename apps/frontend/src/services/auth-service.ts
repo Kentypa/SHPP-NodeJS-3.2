@@ -4,7 +4,7 @@ import { FormObject } from "../types/form-object";
 export function authService(endpoint: string) {
   const signIn = async (data: FormObject) => {
     api
-      .post(endpoint, data, { params: { action: "sign-in" } })
+      .post(`${endpoint}sign-in`, data)
       .then((res) => {
         if (res.status === 200) {
           localStorage.setItem("basic", res.data.basic);
@@ -17,7 +17,7 @@ export function authService(endpoint: string) {
 
   const logout = async () => {
     api
-      .post(endpoint, {}, { params: { action: "logout" } })
+      .post(`${endpoint}logout`, {})
       .then((res) => {
         if (res.status === 200) {
           localStorage.removeItem("basic");

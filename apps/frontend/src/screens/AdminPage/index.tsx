@@ -16,7 +16,7 @@ const bookList = [
   },
   {
     title: "Java для початківців",
-    authors: ["Жора, Жорик"],
+    authors: ["Жора", "Жорик"],
     img: "",
     year: 2021,
     clicks: 3,

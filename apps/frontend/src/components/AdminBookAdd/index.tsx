@@ -50,7 +50,7 @@ export const AdminBookAdd: FC = () => {
     );
 
     if (formState.image instanceof File) {
-      formData.append("image", formState.image);
+      formData.append("coverImage", formState.image);
     }
 
     console.log("Prepared FormData:");

@@ -1,34 +1,22 @@
+import { Router } from "express";
 import { routerHandler } from "../config/routes.config";
-import { Router, Request, Response, NextFunction } from "express";
+import { RequestHandler } from "express";
 
 const router = Router();
 
-router.all(
-  "/api/v1/",
-  async function (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
-    const action = req.query.action as string;
+Object.keys(routerHandler).forEach((action) => {
+  const handlers = routerHandler[action as keyof typeof routerHandler];
 
-    if (!routerHandler[action]) {
-      res.status(404).json({ error: `Action '${action}' not found` });
-      return Promise.resolve();
-    }
+  if (Array.isArray(handlers) && handlers.length > 0) {
+    console.log(`Registering route for action: ${action}`);
 
-    try {
-      await Promise.all(
-        routerHandler[action].map((handler) => handler(req, res, next))
-      );
-    } catch (error) {
-      console.error("Error processing request:", error);
-      if (!res.headersSent) {
-        res.status(500).json({ error: "Internal server error" });
-      }
-      next(error);
-    }
+    router.all(
+      `/api/v1/${action}`,
+      ...handlers.map((handler) => handler as RequestHandler)
+    );
+  } else {
+    console.warn(`No valid handlers found for action: ${action}`);
   }
-);
+});
 
 export default router;
