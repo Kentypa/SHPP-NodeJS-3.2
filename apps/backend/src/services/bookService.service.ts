@@ -4,6 +4,8 @@ import { Book } from "../shared/entity/Book";
 import { Author } from "../shared/entity/Author";
 import { validate } from "class-validator";
 import { AddBookDto } from "../dto/add-book.dto";
+import fs from "fs/promises";
+import path from "path";
 
 export const addBook = async (req: Request, res: Response) => {
   try {
@@ -135,5 +137,82 @@ export const getBooks = async (req: Request, res: Response) => {
     return res
       .status(500)
       .send({ success: false, error: "Internal server error" });
+  }
+};
+
+export const deleteBook = async (req: Request, res: Response) => {
+  const queryRunner = AppDataSource.createQueryRunner();
+  try {
+    const bookId = Number(req.query.id);
+
+    if (isNaN(bookId)) {
+      return res.status(400).send({
+        success: false,
+        error: "Invalid book ID",
+      });
+    }
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    const bookRepository = queryRunner.manager.getRepository(Book);
+    const authorRepository = queryRunner.manager.getRepository(Author);
+
+    const book = await bookRepository.findOne({
+      where: { id: bookId },
+      relations: ["authors"],
+    });
+
+    if (!book) {
+      return res.status(404).send({
+        success: false,
+        error: "Book not found",
+      });
+    }
+
+    if (book.image) {
+      try {
+        const imagePath = path.join(
+          __dirname,
+          "..",
+          "uploads",
+          path.basename(book.image)
+        );
+
+        await fs.access(imagePath);
+        await fs.unlink(imagePath);
+      } catch (fileError) {
+        console.error("Error deleting image:", fileError);
+      }
+    }
+
+    await bookRepository.remove(book);
+
+    for (const author of book.authors) {
+      const authorWithBooks = await authorRepository.findOne({
+        where: { id: author.id },
+        relations: ["books"],
+      });
+
+      if (authorWithBooks && authorWithBooks.books.length === 0) {
+        await authorRepository.remove(authorWithBooks);
+      }
+    }
+
+    await queryRunner.commitTransaction();
+
+    return res.send({
+      success: true,
+      message: "Book deleted successfully",
+    });
+  } catch (error) {
+    await queryRunner.rollbackTransaction();
+    console.error("Error deleting book:", error);
+    return res.status(500).send({
+      success: false,
+      error: "Internal server error",
+    });
+  } finally {
+    await queryRunner.release();
   }
 };

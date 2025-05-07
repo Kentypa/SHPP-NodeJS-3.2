@@ -1,11 +1,14 @@
 import { FC } from "react";
+import { booksService } from "../../services/books-service";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 
 type AdminBook = {
-  title: string;
+  id: number;
+  name: string;
   authors: string[];
-  img: string;
+  image: string;
   year: number;
-  clicks: number;
+  totalClick: number;
 };
 
 type AdminBookListProps = {
@@ -13,6 +16,16 @@ type AdminBookListProps = {
 };
 
 export const AdminBookList: FC<AdminBookListProps> = ({ booksList }) => {
+  const { deleteBook } = booksService("api/v1/");
+  const queryClient = useQueryClient();
+
+  const logoutMutation = useMutation({
+    mutationFn: deleteBook,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["books"] });
+    },
+  });
+
   return (
     <div className="border border-gray-600 rounded-2xl inline-block max-h-100">
       <table className="border-collapse">
@@ -29,19 +42,28 @@ export const AdminBookList: FC<AdminBookListProps> = ({ booksList }) => {
           {booksList.map((book, index) => (
             <tr key={index} className="even:bg-gray-200">
               <td className="p-3 border border-gray-300 flex items-center gap-2">
-                <img src={book.img} alt="book" className="w-6 h-6" />
-                <span>{book.title}</span>
+                <img
+                  src={`http://localhost:3000${book.image}`}
+                  alt="book"
+                  className="w-6 h-6"
+                />
+                <span>{book.name}</span>
               </td>
               <td className="p-3 border border-gray-300">
                 {book.authors.join(", ")}
               </td>
               <td className="p-3 border border-gray-300">{book.year}</td>
               <td className="p-3 border border-gray-300">
-                <button className="text-blue-600 hover:underline">
+                <button
+                  className="text-blue-600 hover:underline"
+                  onClick={() => {
+                    logoutMutation.mutate(book.id);
+                  }}
+                >
                   delete
                 </button>
               </td>
-              <td className="p-3 border border-gray-300">{book.clicks}</td>
+              <td className="p-3 border border-gray-300">{book.totalClick}</td>
             </tr>
           ))}
         </tbody>

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { logout, signIn } from "../services/authService.service";
 import { basicAuth } from "../middleware/basic-auth.middleware";
-import { addBook, getBooks } from "../services/bookService.service";
+import { addBook, deleteBook, getBooks } from "../services/bookService.service";
 import { uploadMiddleware } from "./multer.config";
 
 export const routerHandler = {
@@ -14,5 +14,6 @@ export const routerHandler = {
     },
   ],
   ["add-book"]: [basicAuth, uploadMiddleware.single("coverImage"), addBook],
+  ["delete-book"]: [basicAuth, deleteBook],
   ["get-books"]: [getBooks],
 };
