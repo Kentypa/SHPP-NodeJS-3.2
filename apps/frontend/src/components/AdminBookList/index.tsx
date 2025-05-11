@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { booksService } from "../../services/books-service";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 
@@ -26,6 +26,20 @@ export const AdminBookList: FC<AdminBookListProps> = ({ booksList }) => {
     },
   });
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const booksPerPage = 7;
+
+  const indexOfLastBook = currentPage * booksPerPage;
+  const indexOfFirstBook = indexOfLastBook - booksPerPage;
+  const currentBooks = booksList.slice(indexOfFirstBook, indexOfLastBook);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  const pageNumbers = [];
+  for (let i = 1; i <= Math.ceil(booksList.length / booksPerPage); i++) {
+    pageNumbers.push(i);
+  }
+
   return (
     <div className="border border-gray-600 rounded-2xl inline-block max-h-100">
       <table className="border-collapse">
@@ -39,7 +53,7 @@ export const AdminBookList: FC<AdminBookListProps> = ({ booksList }) => {
           </tr>
         </thead>
         <tbody>
-          {booksList.map((book, index) => (
+          {currentBooks.map((book, index) => (
             <tr key={index} className="even:bg-gray-200">
               <td className="p-3 border border-gray-300 flex items-center gap-2">
                 <img
@@ -68,6 +82,23 @@ export const AdminBookList: FC<AdminBookListProps> = ({ booksList }) => {
           ))}
         </tbody>
       </table>
+
+      {/* Пагинация */}
+      <div className="flex justify-center mt-4">
+        {pageNumbers.map((number) => (
+          <button
+            key={number}
+            onClick={() => paginate(number)}
+            className={`mx-2 py-1 px-4 rounded-full ${
+              currentPage === number
+                ? "bg-blue-600 text-white"
+                : "bg-gray-300 text-black"
+            }`}
+          >
+            {number}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };
