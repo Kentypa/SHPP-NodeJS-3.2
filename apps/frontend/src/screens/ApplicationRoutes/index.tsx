@@ -5,6 +5,7 @@ import { MainPage } from "../MainPage";
 import { SignInPage } from "../SignInPage";
 import { AdminPage } from "../AdminPage";
 import { ProtectedRoute } from "../../components/UI/ProtectedRoute";
+import { BookPage } from "../BookPage";
 
 export const ApplicationRoutes: FC = () => {
   return (
@@ -12,6 +13,7 @@ export const ApplicationRoutes: FC = () => {
       <Route path="/" element={<MainPage />} />
       <Route path="library" element={<BooksPage />} />
       <Route path="sign-in" element={<SignInPage />} />
+      <Route path="book/:id" element={<BookPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="admin" element={<AdminPage />} />
       </Route>
