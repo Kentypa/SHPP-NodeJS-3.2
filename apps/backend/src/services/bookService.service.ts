@@ -140,10 +140,93 @@ export const getBooks = async (req: Request, res: Response) => {
   }
 };
 
+export const getBooksByPage = async (req: Request, res: Response) => {
+  try {
+    const bookRepository = AppDataSource.getRepository(Book);
+
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+
+    const [books, total] = await bookRepository
+      .createQueryBuilder("book")
+      .leftJoinAndSelect("book.authors", "author")
+      .skip(offset)
+      .take(limit)
+      .getManyAndCount();
+
+    return res.send({
+      success: true,
+      page,
+      totalPages: Math.ceil(total / limit),
+      totalItems: total,
+      books: books.map((book) => ({
+        id: book.id,
+        name: book.name,
+        year: book.year,
+        description: book.description,
+        image: book.image,
+        totalClick: book.totalClick,
+        authors: book.authors.map((a) => a.name),
+      })),
+    });
+  } catch (error) {
+    console.error("Error getting books by page:", error);
+    return res
+      .status(500)
+      .send({ success: false, error: "Internal server error" });
+  }
+};
+
+export const getBookById = async (req: Request, res: Response) => {
+  try {
+    const bookRepository = AppDataSource.getRepository(Book);
+
+    const id = Number(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).send({
+        success: false,
+        error: "Invalid book ID",
+      });
+    }
+
+    const book = await bookRepository.findOne({
+      where: { id },
+      relations: ["authors"],
+    });
+
+    if (!book) {
+      return res.status(404).send({
+        success: false,
+        error: "Book not found",
+      });
+    }
+
+    return res.send({
+      success: true,
+      book: {
+        id: book.id,
+        name: book.name,
+        year: book.year,
+        description: book.description,
+        image: book.image,
+        totalClick: book.totalClick,
+        authors: book.authors.map((a) => a.name),
+      },
+    });
+  } catch (error) {
+    console.error("Error getting book by ID:", error);
+    return res
+      .status(500)
+      .send({ success: false, error: "Internal server error" });
+  }
+};
+
 export const deleteBook = async (req: Request, res: Response) => {
   const queryRunner = AppDataSource.createQueryRunner();
   try {
-    const bookId = Number(req.query.id);
+    const bookId = Number(req.params.id);
 
     if (isNaN(bookId)) {
       return res.status(400).send({

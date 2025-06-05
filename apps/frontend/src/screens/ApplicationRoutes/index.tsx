@@ -13,7 +13,7 @@ export const ApplicationRoutes: FC = () => {
       <Route path="/" element={<MainPage />} />
       <Route path="library" element={<BooksPage />} />
       <Route path="sign-in" element={<SignInPage />} />
-      <Route path="book/:id" element={<BookPage />} />
+      <Route path="books/:id" element={<BookPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="admin" element={<AdminPage />} />
       </Route>

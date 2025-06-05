@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import { booksService } from "../../services/books-service";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 type AdminBook = {
   id: number;
@@ -11,38 +11,37 @@ type AdminBook = {
   totalClick: number;
 };
 
-type AdminBookListProps = {
-  booksList: AdminBook[];
-};
-
-export const AdminBookList: FC<AdminBookListProps> = ({ booksList }) => {
-  const { deleteBook } = booksService("api/v1/");
+export const AdminBookList: FC = () => {
+  const { deleteBook, getBooksPaginated } = booksService("/api/v1/");
+  const [currentPage, setCurrentPage] = useState(1);
   const queryClient = useQueryClient();
+  const booksPerPage = 7;
 
-  const logoutMutation = useMutation({
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["books"],
+    queryFn: () => getBooksPaginated(currentPage, booksPerPage),
+  });
+
+  const deleteMutation = useMutation({
     mutationFn: deleteBook,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["books"] });
     },
   });
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const booksPerPage = 7;
+  if (isLoading) {
+    return <div className="text-center p-4">Loading books...</div>;
+  }
 
-  const indexOfLastBook = currentPage * booksPerPage;
-  const indexOfFirstBook = indexOfLastBook - booksPerPage;
-  const currentBooks = booksList.slice(indexOfFirstBook, indexOfLastBook);
-
-  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-
-  const pageNumbers = [];
-  for (let i = 1; i <= Math.ceil(booksList.length / booksPerPage); i++) {
-    pageNumbers.push(i);
+  if (isError || !data) {
+    return (
+      <div className="text-center p-4 text-red-500">Error loading books</div>
+    );
   }
 
   return (
     <div className="border border-gray-600 rounded-2xl inline-block max-h-100">
-      <table className="border-collapse">
+      <table className="border-collapse w-full">
         <thead>
           <tr className="bg-gray-200 text-left">
             <th className="p-3 border border-gray-400">Book name</th>
@@ -53,51 +52,78 @@ export const AdminBookList: FC<AdminBookListProps> = ({ booksList }) => {
           </tr>
         </thead>
         <tbody>
-          {currentBooks.map((book, index) => (
-            <tr key={index} className="even:bg-gray-200">
+          {data.books.map((book: AdminBook) => (
+            <tr key={book.id} className="even:bg-gray-100">
               <td className="p-3 border border-gray-300 flex items-center gap-2">
                 <img
                   src={`http://localhost:3000${book.image}`}
-                  alt="book"
-                  className="w-6 h-6"
+                  alt="book cover"
+                  className="w-8 h-10 object-cover"
                 />
-                <span>{book.name}</span>
+                <span className="truncate max-w-xs">{book.name}</span>
               </td>
-              <td className="p-3 border border-gray-300">
+              <td className="p-3 border border-gray-300 max-w-xs truncate">
                 {book.authors.join(", ")}
               </td>
               <td className="p-3 border border-gray-300">{book.year}</td>
               <td className="p-3 border border-gray-300">
                 <button
-                  className="text-blue-600 hover:underline"
-                  onClick={() => {
-                    logoutMutation.mutate(book.id);
-                  }}
+                  className="text-red-600 hover:text-red-800 transition-colors"
+                  onClick={() => deleteMutation.mutate(book.id)}
                 >
-                  delete
+                  Delete
                 </button>
               </td>
-              <td className="p-3 border border-gray-300">{book.totalClick}</td>
+              <td className="p-3 border border-gray-300 text-center">
+                {book.totalClick}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
 
       {/* Пагинация */}
-      <div className="flex justify-center mt-4">
-        {pageNumbers.map((number) => (
-          <button
-            key={number}
-            onClick={() => paginate(number)}
-            className={`mx-2 py-1 px-4 rounded-full ${
-              currentPage === number
-                ? "bg-blue-600 text-white"
-                : "bg-gray-300 text-black"
-            }`}
-          >
-            {number}
-          </button>
-        ))}
+      <div className="flex justify-between items-center p-4 bg-gray-100">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+
+        <div className="flex space-x-2">
+          {Array.from({ length: Math.min(5, data.totalPages) }, (_, i) => {
+            const pageNumber = i + 1;
+            return (
+              <button
+                key={pageNumber}
+                onClick={() => setCurrentPage(pageNumber)}
+                className={`w-10 h-10 rounded-full ${
+                  currentPage === pageNumber
+                    ? "bg-blue-600 text-white"
+                    : "bg-white border border-gray-300"
+                }`}
+              >
+                {pageNumber}
+              </button>
+            );
+          })}
+
+          {data.totalPages > 5 && (
+            <span className="px-2">... of {data.totalPages}</span>
+          )}
+        </div>
+
+        <button
+          onClick={() =>
+            setCurrentPage((prev) => Math.min(prev + 1, data.totalPages))
+          }
+          disabled={currentPage === data.totalPages}
+          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+        >
+          Next
+        </button>
       </div>
     </div>
   );

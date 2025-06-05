@@ -22,6 +22,9 @@ export class Book {
   year: string;
 
   @Column({ type: "smallint", default: 0 })
+  totalViews: number;
+
+  @Column({ type: "smallint", default: 0 })
   totalClick: number;
 
   @Column({ type: "varchar", length: 255 })

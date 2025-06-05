@@ -1,6 +1,6 @@
 export enum RoutesPath {
   LIBRARY = "/library",
-  BOOK = "/book",
+  BOOK = "/books",
   ADMIN = "/admin",
   MAIN = "/",
   SIGN_IN = "/sign-in",

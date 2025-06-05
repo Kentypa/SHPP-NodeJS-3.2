@@ -2,16 +2,13 @@ import { FC } from "react";
 import { PageWrapper } from "../../components/UI/PageWrapper";
 import { AdminBookList } from "../../components/AdminBookList";
 import { AdminBookAdd } from "../../components/AdminBookAdd";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authService } from "../../services/auth-service";
 import { useNavigate } from "react-router";
-import { booksService } from "../../services/books-service";
 
 export const AdminPage: FC = () => {
-  const { getBooks } = booksService("api/v1/");
-  const { logout } = authService("api/v1/");
+  const { logout } = authService("/api/v1/");
   const queryClient = useQueryClient();
-  const booksQuery = useQuery({ queryKey: ["books"], queryFn: getBooks });
   const nav = useNavigate();
 
   const logoutMutation = useMutation({
@@ -25,19 +22,22 @@ export const AdminPage: FC = () => {
   return (
     <PageWrapper>
       <main className="flex flex-grow justify-center">
-        <div className="flex justify-between w-full max-w-[1280px] py-10">
-          {booksQuery.isSuccess && (
-            <AdminBookList booksList={booksQuery.data.books} />
-          )}
-          <AdminBookAdd />
+        <div className="flex flex-col w-full max-w-[1280px] py-10 gap-8">
+          <div className="flex justify-end">
+            <button
+              onClick={() => logoutMutation.mutate()}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-8 lg:justify-around">
+            <AdminBookList />
+
+            <AdminBookAdd />
+          </div>
         </div>
-        <button
-          onClick={() => {
-            logoutMutation.mutate();
-          }}
-        >
-          Logout
-        </button>
       </main>
     </PageWrapper>
   );
