@@ -58,6 +58,7 @@ export const addBook = async (req: Request, res: Response) => {
       book.description = bookDto.description;
       book.image = `/uploads/${req.file.filename}`;
       book.totalClick = 0;
+      book.totalViews = 0;
 
       book.authors = [];
 
@@ -145,7 +146,7 @@ export const getBooksByPage = async (req: Request, res: Response) => {
     const bookRepository = AppDataSource.getRepository(Book);
 
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit = parseInt(req.query.offset as string) || 10;
     const offset = (page - 1) * limit;
 
     const [books, total] = await bookRepository
@@ -297,5 +298,57 @@ export const deleteBook = async (req: Request, res: Response) => {
     });
   } finally {
     await queryRunner.release();
+  }
+};
+
+export const incrementViews = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).send({ success: false, error: "Invalid book ID" });
+    }
+
+    const bookRepository = AppDataSource.getRepository(Book);
+    const book = await bookRepository.findOneBy({ id });
+
+    if (!book) {
+      return res.status(404).send({ success: false, error: "Book not found" });
+    }
+
+    book.totalViews += 1;
+    await bookRepository.save(book);
+
+    return res.send({ success: true, message: "View count incremented" });
+  } catch (error) {
+    console.error("Error incrementing views:", error);
+    return res
+      .status(500)
+      .send({ success: false, error: "Internal server error" });
+  }
+};
+
+export const incrementClicks = async (req: Request, res: Response) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).send({ success: false, error: "Invalid book ID" });
+    }
+
+    const bookRepository = AppDataSource.getRepository(Book);
+    const book = await bookRepository.findOneBy({ id });
+
+    if (!book) {
+      return res.status(404).send({ success: false, error: "Book not found" });
+    }
+
+    book.totalClick += 1;
+    await bookRepository.save(book);
+
+    return res.send({ success: true, message: "Click count incremented" });
+  } catch (error) {
+    console.error("Error incrementing clicks:", error);
+    return res
+      .status(500)
+      .send({ success: false, error: "Internal server error" });
   }
 };

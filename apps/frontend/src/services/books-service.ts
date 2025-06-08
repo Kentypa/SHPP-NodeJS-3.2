@@ -30,10 +30,24 @@ export function booksService(endpoint: string) {
     return response.data;
   };
 
-  const getBooksPaginated = async (page: number, limit = 20) => {
+  const getBooksPaginated = async (page: number, offset = 20) => {
     const response = await api.get(`${endpoint}books/paginated`, {
-      params: { page, limit },
+      params: { page, offset },
     });
+    return response.data;
+  };
+
+  const incrementViews = async (bookID: number) => {
+    const response = await api.post(
+      `${endpoint}books/incrementViews/${bookID}`
+    );
+    return response.data;
+  };
+
+  const incrementClicks = async (bookID: number) => {
+    const response = await api.post(
+      `${endpoint}books/incrementClicks/${bookID}`
+    );
     return response.data;
   };
 
@@ -44,5 +58,7 @@ export function booksService(endpoint: string) {
     getBook,
     getBooks,
     getBooksPaginated,
+    incrementViews,
+    incrementClicks,
   };
 }

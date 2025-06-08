@@ -7,6 +7,8 @@ import {
   getBookById,
   getBooks,
   getBooksByPage,
+  incrementClicks,
+  incrementViews,
 } from "../services/bookService.service";
 import { uploadMiddleware } from "./multer.config";
 
@@ -19,4 +21,6 @@ export const routerHandler = {
   "GET /books": [getBooks],
   "GET /books/paginated": [getBooksByPage],
   "GET /book/:id": [getBookById],
+  "POST /books/incrementViews/:id": [incrementViews],
+  "POST /books/incrementClicks/:id": [incrementClicks],
 };
