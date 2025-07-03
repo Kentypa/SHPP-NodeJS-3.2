@@ -1,0 +1,49 @@
+Table user {
+  id SERIAL [pk]
+  email varchar(60) [not null, unique]
+  password varchar(100) [not null]
+  role smallint [not null, default: 1]
+  refresh_token varchar(150)
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (email) [name: 'idx_user_email']
+  }
+}
+
+Table author {
+  id SERIAL [pk]
+  name varchar(255) [not null, unique]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (name) [name: 'idx_author_name']
+  }
+}
+
+Table book {
+  id SERIAL [pk]
+  name varchar(255) [not null]
+  year integer
+  description text
+  image varchar(500)
+  total_click integer [default: 0]
+  total_views integer [default: 0]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+  deleted_at timestamp
+
+  Indexes {
+    (name) [name: 'idx_book_name']
+  }
+}
+
+Table book_authors {
+  book_id integer [ref: > book.id, on delete: cascade]
+  author_id integer [ref: > author.id, on delete: cascade]
+
+  indexes {
+    (book_id, author_id) [pk]
+  }
+}

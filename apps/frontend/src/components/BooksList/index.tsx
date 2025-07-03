@@ -1,25 +1,27 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { booksService } from "../../services/books-service";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router";
 import { RoutesPath } from "../../enums/routes-path";
-
-type Book = {
-  id: number;
-  name: string;
-  image: string;
-  authors: string[];
-};
+import { useNavigate, useSearchParams } from "react-router";
+import { Book } from "../../types/book";
 
 export const BooksList: FC = () => {
   const { getBooksPaginated } = booksService("/api/v1/");
-  const [page, setPage] = useState(1);
-  const limit = 20;
+  const [searchParams, setSearchParams] = useSearchParams();
   const nav = useNavigate();
 
+  const pageParam = Number(searchParams.get("page")) || 1;
+  const offsetParam = Number(searchParams.get("offset")) || 20;
+
+  const [page, setPage] = useState(pageParam);
+
+  useEffect(() => {
+    setSearchParams({ page: String(page), offset: String(offsetParam) });
+  }, [page, offsetParam, setSearchParams]);
+
   const { data, isLoading, isError, isSuccess } = useQuery({
-    queryKey: ["books", page],
-    queryFn: () => getBooksPaginated(page, limit),
+    queryKey: ["books", page, offsetParam],
+    queryFn: () => getBooksPaginated(page, offsetParam),
   });
 
   if (isLoading) {
@@ -38,7 +40,7 @@ export const BooksList: FC = () => {
 
       {isSuccess && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-4 gap-6 w-[1280px]">
             {data.books.map((book: Book) => (
               <div
                 key={book.id}

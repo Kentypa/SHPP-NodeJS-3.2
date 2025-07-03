@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { AppDataSource } from "../data-source";
+import { pool } from "../config/db.config";
 import { User } from "../shared/entity/User";
 
 export const basicAuth = async (
@@ -26,18 +26,17 @@ export const basicAuth = async (
       return res.status(400).send("Invalid authorization header format");
     }
 
-    const userRepository = AppDataSource.getRepository(User);
+    const query =
+      'SELECT id, email, password, role FROM "user" WHERE email = $1';
+    const result = await pool.query(query, [email]);
 
-    const user = await userRepository.findOne({
-      where: { email },
-      select: ["id", "email", "password", "role"],
-    });
+    const user: User | undefined = result.rows[0];
 
     if (!user) {
       return res.status(401).send("Invalid authentication credentials");
     }
 
-    if (!(password === user.password)) {
+    if (password !== user.password) {
       return res.status(401).send("Invalid authentication credentials");
     }
 

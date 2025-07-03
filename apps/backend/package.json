@@ -5,10 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "npx tsx ./src/index.ts",
-    "typeorm": "typeorm-ts-node-commonjs",
-    "build": "tsc",
-    "seed:run": "ts-node ./node_modules/typeorm-extension/bin/cli.cjs seed:run  -d src/data-source.ts",
-    "seed:create": "ts-node ./node_modules/typeorm-extension/bin/cli.cjs seed:create"
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
@@ -24,11 +21,11 @@
     "express": "^5.1.0",
     "fs-extra": "^11.3.0",
     "multer": "^1.4.5-lts.2",
+    "node-cron": "^4.1.1",
     "pg": "^8.14.1",
     "reflect-metadata": "^0.2.2",
     "tsx": "^4.19.3",
-    "typeorm": "0.3.22",
-    "typeorm-extension": "^3.7.1",
+    "typeorm": "^0.3.25",
     "typescript": "^5.8.3"
   },
   "devDependencies": {
@@ -37,6 +34,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
     "@types/node": "^22.14.1",
+    "@types/pg": "^8.15.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
   }

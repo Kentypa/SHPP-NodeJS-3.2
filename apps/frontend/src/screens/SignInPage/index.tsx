@@ -11,7 +11,7 @@ export const SignInPage: FC = () => {
 
   const queryClient = useQueryClient();
 
-  const { signIn } = authService("api/v1/");
+  const { signIn } = authService("admin/api/v1/");
 
   const signInMutation = useMutation({
     mutationFn: signIn,

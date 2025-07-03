@@ -5,4 +5,9 @@ build/
 tmp/
 temp/
 .env
-uploads/
+
+uploads/*
+!uploads/.gitkeep
+
+backups/*
+!backups/.gitkeep

@@ -1,0 +1,38 @@
+CREATE TABLE IF NOT EXISTS "user" (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(60) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    role SMALLINT NOT NULL DEFAULT 1,
+    refresh_token VARCHAR(150),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS author (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS book (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    year INTEGER,
+    description TEXT,
+    image VARCHAR(500),
+    total_click INTEGER DEFAULT 0,
+    total_views INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS book_authors (
+    book_id INTEGER REFERENCES book(id) ON DELETE CASCADE,
+    author_id INTEGER REFERENCES author(id) ON DELETE CASCADE,
+    PRIMARY KEY (book_id, author_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_email ON "user"(email);
+CREATE INDEX IF NOT EXISTS idx_author_name ON author(name);
+CREATE INDEX IF NOT EXISTS idx_book_name ON book(name);

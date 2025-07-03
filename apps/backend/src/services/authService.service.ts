@@ -1,6 +1,5 @@
 import { SignInUserDto } from "../dto/sign-in-user.dto";
-import { AppDataSource } from "../data-source";
-import { User } from "../shared/entity/User";
+import { pool } from "../config/db.config";
 import { Request, Response } from "express";
 
 export const signIn = async (req: Request, res: Response) => {
@@ -14,8 +13,10 @@ export const signIn = async (req: Request, res: Response) => {
       });
     }
 
-    const userRepository = AppDataSource.getRepository(User);
-    const user = await userRepository.findOne({ where: { email } });
+    const query = 'SELECT * FROM "user" WHERE email = $1';
+    const result = await pool.query(query, [email]);
+
+    const user = result.rows[0];
 
     if (!user || user.password !== password) {
       return res

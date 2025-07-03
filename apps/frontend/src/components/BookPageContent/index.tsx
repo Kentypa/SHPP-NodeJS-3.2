@@ -2,15 +2,7 @@ import { FC, useCallback, useEffect } from "react";
 import { useParams } from "react-router";
 import { booksService } from "../../services/books-service";
 import { useMutation, useQuery } from "@tanstack/react-query";
-
-type SingleBook = {
-  id: number;
-  name: string;
-  authors: string[];
-  image: string;
-  year: number;
-  description: string;
-};
+import { SingleBook } from "../../types/single-book";
 
 export const BookPageContent: FC = () => {
   const params = useParams();

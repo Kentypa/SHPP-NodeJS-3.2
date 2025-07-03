@@ -1,13 +1,11 @@
 import { Request, Response } from "express";
-import { AppDataSource } from "../data-source";
-import { Book } from "../shared/entity/Book";
-import { Author } from "../shared/entity/Author";
+import { pool } from "../config/db.config";
 import { validate } from "class-validator";
 import { AddBookDto } from "../dto/add-book.dto";
-import fs from "fs/promises";
 import path from "path";
 
 export const addBook = async (req: Request, res: Response) => {
+  const client = await pool.connect();
   try {
     if (!req.file) {
       return res.status(400).send({
@@ -44,93 +42,96 @@ export const addBook = async (req: Request, res: Response) => {
       });
     }
 
-    const queryRunner = AppDataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    await client.query("BEGIN");
 
-    try {
-      const authorRepository = queryRunner.manager.getRepository(Author);
-      const bookRepository = queryRunner.manager.getRepository(Book);
+    const bookQuery = `
+      INSERT INTO book (name, year, description, image, total_click, total_views)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *`;
 
-      const book = new Book();
-      book.name = bookDto.name;
-      book.year = bookDto.year;
-      book.description = bookDto.description;
-      book.image = `/uploads/${req.file.filename}`;
-      book.totalClick = 0;
-      book.totalViews = 0;
+    const bookResult = await client.query(bookQuery, [
+      bookDto.name,
+      bookDto.year,
+      bookDto.description,
+      `/uploads/${req.file.filename}`,
+      0,
+      0,
+    ]);
 
-      book.authors = [];
+    const book = bookResult.rows[0];
+    const bookAuthors = [];
 
-      for (const authorName of bookDto.authors) {
-        let author = await authorRepository.findOne({
-          where: { name: authorName },
-        });
+    for (const authorName of bookDto.authors) {
+      let authorQuery = "SELECT * FROM author WHERE name = $1";
+      let authorResult = await client.query(authorQuery, [authorName]);
+      let author;
 
-        if (!author) {
-          author = new Author();
-          author.name = authorName;
-          author = await authorRepository.save(author);
-        }
-
-        book.authors.push(author);
+      if (authorResult.rows.length === 0) {
+        const createAuthorQuery =
+          "INSERT INTO author (name) VALUES ($1) RETURNING *";
+        const newAuthorResult = await client.query(createAuthorQuery, [
+          authorName,
+        ]);
+        author = newAuthorResult.rows[0];
+      } else {
+        author = authorResult.rows[0];
       }
 
-      const savedBook = await bookRepository.save(book);
-
-      console.log("Saved book with authors:", {
-        id: savedBook.id,
-        name: savedBook.name,
-        authors: savedBook.authors.map((a) => ({ id: a.id, name: a.name })),
-      });
-
-      await queryRunner.commitTransaction();
-
-      return res.status(201).send({
-        success: true,
-        book: {
-          id: book.id,
-          name: book.name,
-          year: book.year,
-          description: book.description,
-          image: book.image,
-          authors: book.authors.map((a) => a.name),
-        },
-      });
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      console.error("Transaction error:", error);
-      throw error;
-    } finally {
-      await queryRunner.release();
+      const linkQuery =
+        "INSERT INTO book_authors (book_id, author_id) VALUES ($1, $2)";
+      await client.query(linkQuery, [book.id, author.id]);
+      bookAuthors.push(author.name);
     }
-  } catch (error) {
-    console.error("Error adding book:", error);
-    return res
-      .status(500)
-      .send({ success: false, error: "Internal server error" });
-  }
-};
 
-export const getBooks = async (req: Request, res: Response) => {
-  try {
-    const bookRepository = AppDataSource.getRepository(Book);
+    await client.query("COMMIT");
 
-    const books = await bookRepository
-      .createQueryBuilder("book")
-      .leftJoinAndSelect("book.authors", "author")
-      .getMany();
-
-    return res.send({
+    return res.status(201).send({
       success: true,
-      books: books.map((book) => ({
+      book: {
         id: book.id,
         name: book.name,
         year: book.year,
         description: book.description,
         image: book.image,
-        totalClick: book.totalClick,
-        authors: book.authors.map((a) => a.name),
+        authors: bookAuthors,
+      },
+    });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("Error adding book:", error);
+    return res
+      .status(500)
+      .send({ success: false, error: "Internal server error" });
+  } finally {
+    client.release();
+  }
+};
+
+export const getBooks = async (req: Request, res: Response) => {
+  try {
+    const query = `
+      SELECT 
+        b.id, b.name, b.year, b.description, b.image, b.total_click,
+        ARRAY_AGG(a.name ORDER BY a.name) as authors
+      FROM book b
+      LEFT JOIN book_authors ba ON b.id = ba.book_id
+      LEFT JOIN author a ON ba.author_id = a.id
+      WHERE b.deleted_at IS NULL
+      GROUP BY b.id, b.name, b.year, b.description, b.image, b.total_click
+      ORDER BY b.id`;
+
+    const result = await pool.query(query);
+
+    return res.send({
+      success: true,
+      books: result.rows.map((book) => ({
+        id: book.id,
+        name: book.name,
+        year: book.year,
+        description: book.description,
+        image: book.image,
+        totalClick: book.total_click,
+        authors: book.authors.filter((author) => author !== null),
       })),
     });
   } catch (error) {
@@ -143,32 +144,41 @@ export const getBooks = async (req: Request, res: Response) => {
 
 export const getBooksByPage = async (req: Request, res: Response) => {
   try {
-    const bookRepository = AppDataSource.getRepository(Book);
-
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.offset as string) || 10;
     const offset = (page - 1) * limit;
 
-    const [books, total] = await bookRepository
-      .createQueryBuilder("book")
-      .leftJoinAndSelect("book.authors", "author")
-      .skip(offset)
-      .take(limit)
-      .getManyAndCount();
+    const countQuery = "SELECT COUNT(*) FROM book WHERE deleted_at IS NULL";
+    const countResult = await pool.query(countQuery);
+    const total = parseInt(countResult.rows[0].count);
+
+    const query = `
+      SELECT 
+        b.id, b.name, b.year, b.description, b.image, b.total_click,
+        ARRAY_AGG(a.name ORDER BY a.name) as authors
+      FROM book b
+      LEFT JOIN book_authors ba ON b.id = ba.book_id
+      LEFT JOIN author a ON ba.author_id = a.id
+      WHERE b.deleted_at IS NULL
+      GROUP BY b.id, b.name, b.year, b.description, b.image, b.total_click
+      ORDER BY b.id
+      LIMIT $1 OFFSET $2`;
+
+    const result = await pool.query(query, [limit, offset]);
 
     return res.send({
       success: true,
       page,
       totalPages: Math.ceil(total / limit),
       totalItems: total,
-      books: books.map((book) => ({
+      books: result.rows.map((book) => ({
         id: book.id,
         name: book.name,
         year: book.year,
         description: book.description,
         image: book.image,
-        totalClick: book.totalClick,
-        authors: book.authors.map((a) => a.name),
+        totalClick: book.total_click,
+        authors: book.authors.filter((author) => author !== null),
       })),
     });
   } catch (error) {
@@ -181,10 +191,7 @@ export const getBooksByPage = async (req: Request, res: Response) => {
 
 export const getBookById = async (req: Request, res: Response) => {
   try {
-    const bookRepository = AppDataSource.getRepository(Book);
-
     const id = Number(req.params.id);
-
     if (isNaN(id)) {
       return res.status(400).send({
         success: false,
@@ -192,17 +199,26 @@ export const getBookById = async (req: Request, res: Response) => {
       });
     }
 
-    const book = await bookRepository.findOne({
-      where: { id },
-      relations: ["authors"],
-    });
+    const query = `
+      SELECT 
+        b.id, b.name, b.year, b.description, b.image, b.total_click,
+        ARRAY_AGG(a.name ORDER BY a.name) as authors
+      FROM book b
+      LEFT JOIN book_authors ba ON b.id = ba.book_id
+      LEFT JOIN author a ON ba.author_id = a.id
+      WHERE b.id = $1 AND b.deleted_at IS NULL
+      GROUP BY b.id, b.name, b.year, b.description, b.image, b.total_click`;
 
-    if (!book) {
+    const result = await pool.query(query, [id]);
+
+    if (result.rows.length === 0) {
       return res.status(404).send({
         success: false,
         error: "Book not found",
       });
     }
+
+    const book = result.rows[0];
 
     return res.send({
       success: true,
@@ -212,8 +228,8 @@ export const getBookById = async (req: Request, res: Response) => {
         year: book.year,
         description: book.description,
         image: book.image,
-        totalClick: book.totalClick,
-        authors: book.authors.map((a) => a.name),
+        totalClick: book.total_click,
+        authors: book.authors.filter((author) => author !== null),
       },
     });
   } catch (error) {
@@ -225,10 +241,8 @@ export const getBookById = async (req: Request, res: Response) => {
 };
 
 export const deleteBook = async (req: Request, res: Response) => {
-  const queryRunner = AppDataSource.createQueryRunner();
   try {
     const bookId = Number(req.params.id);
-
     if (isNaN(bookId)) {
       return res.status(400).send({
         success: false,
@@ -236,68 +250,30 @@ export const deleteBook = async (req: Request, res: Response) => {
       });
     }
 
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const bookQuery = "SELECT * FROM book WHERE id = $1 AND deleted_at IS NULL";
+    const bookResult = await pool.query(bookQuery, [bookId]);
 
-    const bookRepository = queryRunner.manager.getRepository(Book);
-    const authorRepository = queryRunner.manager.getRepository(Author);
-
-    const book = await bookRepository.findOne({
-      where: { id: bookId },
-      relations: ["authors"],
-    });
-
-    if (!book) {
+    if (bookResult.rows.length === 0) {
       return res.status(404).send({
         success: false,
         error: "Book not found",
       });
     }
 
-    if (book.image) {
-      try {
-        const imagePath = path.join(
-          __dirname,
-          "..",
-          "uploads",
-          path.basename(book.image)
-        );
-
-        await fs.access(imagePath);
-        await fs.unlink(imagePath);
-      } catch (fileError) {
-        console.error("Error deleting image:", fileError);
-      }
-    }
-
-    await bookRepository.remove(book);
-
-    for (const author of book.authors) {
-      const authorWithBooks = await authorRepository.findOne({
-        where: { id: author.id },
-        relations: ["books"],
-      });
-
-      if (authorWithBooks && authorWithBooks.books.length === 0) {
-        await authorRepository.remove(authorWithBooks);
-      }
-    }
-
-    await queryRunner.commitTransaction();
+    const deleteQuery =
+      "UPDATE book SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1";
+    await pool.query(deleteQuery, [bookId]);
 
     return res.send({
       success: true,
       message: "Book deleted successfully",
     });
   } catch (error) {
-    await queryRunner.rollbackTransaction();
     console.error("Error deleting book:", error);
     return res.status(500).send({
       success: false,
       error: "Internal server error",
     });
-  } finally {
-    await queryRunner.release();
   }
 };
 
@@ -308,15 +284,13 @@ export const incrementViews = async (req: Request, res: Response) => {
       return res.status(400).send({ success: false, error: "Invalid book ID" });
     }
 
-    const bookRepository = AppDataSource.getRepository(Book);
-    const book = await bookRepository.findOneBy({ id });
+    const query =
+      "UPDATE book SET total_views = total_views + 1 WHERE id = $1 AND deleted_at IS NULL RETURNING *";
+    const result = await pool.query(query, [id]);
 
-    if (!book) {
+    if (result.rows.length === 0) {
       return res.status(404).send({ success: false, error: "Book not found" });
     }
-
-    book.totalViews += 1;
-    await bookRepository.save(book);
 
     return res.send({ success: true, message: "View count incremented" });
   } catch (error) {
@@ -334,15 +308,13 @@ export const incrementClicks = async (req: Request, res: Response) => {
       return res.status(400).send({ success: false, error: "Invalid book ID" });
     }
 
-    const bookRepository = AppDataSource.getRepository(Book);
-    const book = await bookRepository.findOneBy({ id });
+    const query =
+      "UPDATE book SET total_click = total_click + 1 WHERE id = $1 AND deleted_at IS NULL RETURNING *";
+    const result = await pool.query(query, [id]);
 
-    if (!book) {
+    if (result.rows.length === 0) {
       return res.status(404).send({ success: false, error: "Book not found" });
     }
-
-    book.totalClick += 1;
-    await bookRepository.save(book);
 
     return res.send({ success: true, message: "Click count incremented" });
   } catch (error) {

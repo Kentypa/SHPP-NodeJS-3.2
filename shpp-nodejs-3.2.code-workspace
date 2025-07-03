@@ -1,0 +1,239 @@
+{
+  "folders": [
+    {
+      "name": "Root",
+      "path": "./"
+    },
+    {
+      "name": "Frontend",
+      "path": "./apps/frontend"
+    },
+    {
+      "name": "Backend",
+      "path": "./apps/backend"
+    }
+  ],
+  "extensions": {
+    "recommendations": [
+      "PKief.material-icon-theme",
+      "aaron-bond.better-comments",
+      "akamud.vscode-theme-onedark",
+      "atommaterial.a-file-icon-vscode",
+      "bocovo.dbml-erd-visualizer",
+      "bradlc.vscode-tailwindcss",
+      "dbaeumer.vscode-eslint",
+      "ecmel.vscode-html-css",
+      "esbenp.prettier-vscode",
+      "formulahendry.auto-close-tag",
+      "formulahendry.auto-rename-tag",
+      "GitHub.copilot",
+      "GitHub.copilot-chat",
+      "IBM.output-colorizer",
+      "kamikillerto.vscode-colorize",
+      "matt-meyers.vscode-dbml",
+      "ms-azuretools.vscode-containers",
+      "ms-vscode.js-debug",
+      "ms-vscode.js-debug-companion",
+      "ms-vscode.vscode-js-profile-table",
+      "yzhang.markdown-all-in-one",
+      "Zignd.html-css-class-completion"
+    ]
+  },
+  "settings": {
+    "material-icon-theme.folders.customClones": [
+      // === Frontend ===
+      {
+        "name": "modals",
+        "base": "components",
+        "color": "pink-300",
+        "folderNames": ["modals"]
+      },
+      {
+        "name": "features",
+        "base": "controller",
+        "color": "cyan-300",
+        "folderNames": ["features"]
+      },
+      {
+        "name": "interceptors",
+        "base": "tools",
+        "color": "red-400",
+        "folderNames": ["interceptors"]
+      },
+      {
+        "name": "wrappers",
+        "base": "src",
+        "color": "blue-400",
+        "folderNames": ["wrappers"]
+      },
+      {
+        "name": "charts",
+        "base": "nuxt",
+        "color": "green-400",
+        "folderNames": ["charts"]
+      },
+      {
+        "name": "business",
+        "base": "bicep",
+        "color": "yellow-800",
+        "folderNames": ["business"]
+      },
+      {
+        "name": "forms",
+        "base": "directive",
+        "color": "purple-400",
+        "folderNames": ["forms"]
+      },
+      {
+        "name": "overlays",
+        "base": "views",
+        "color": "yellow-300",
+        "folderNames": ["overlays"]
+      },
+      {
+        "name": "selectors",
+        "base": "functions",
+        "color": "cyan-400",
+        "folderNames": ["selectors"]
+      },
+      // === Backend ===
+      {
+        "name": "dto",
+        "base": "class",
+        "color": "teal-400",
+        "folderNames": ["dto"]
+      },
+      {
+        "name": "declarations",
+        "base": "typescript",
+        "color": "indigo-400",
+        "folderNames": ["declarations"]
+      },
+      {
+        "name": "filters",
+        "base": "other",
+        "color": "lime-400",
+        "folderNames": ["filters"]
+      },
+      {
+        "name": "entities",
+        "base": "database",
+        "color": "green-500",
+        "folderNames": ["entities"]
+      },
+      {
+        "name": "strategies",
+        "base": "admin",
+        "color": "red-400",
+        "folderNames": ["strategies"]
+      },
+      {
+        "name": "factories",
+        "base": "astro",
+        "color": "yellow-400",
+        "folderNames": ["factories"]
+      },
+      {
+        "name": "gateaways",
+        "base": "global",
+        "color": "pink-400",
+        "folderNames": ["gateaways"]
+      }
+    ],
+    "material-icon-theme.files.associations": {
+      // === Frontend ===
+      // === Backend ===
+      "*.factory.ts": "factory",
+      "*.constant.ts": "constant",
+      "*.validator.ts": "validator",
+      "*.function.ts": "function",
+      "*.middleware.ts": "middleware",
+      "*.filter.ts": "filter",
+      "*.enum.ts": "enum",
+      "*.entity.ts": "entity",
+      "*.decorator.ts": "decorator",
+      "*.config.ts": "config",
+      "*.type.ts": "type",
+      "*.strategy.ts": "strategy",
+      "*.dto.ts": "dto",
+      "*.gateaway.ts": "gateaway"
+    },
+    "material-icon-theme.files.customClones": [
+      {
+        "name": "factory",
+        "base": "fortran",
+        "color": "yellow"
+      },
+      {
+        "name": "constant",
+        "base": "c",
+        "color": "teal"
+      },
+      {
+        "name": "validator",
+        "base": "vim",
+        "color": "yellow"
+      },
+      {
+        "name": "function",
+        "base": "vim",
+        "color": "blue"
+      },
+      {
+        "name": "middleware",
+        "base": "imba",
+        "color": "purple"
+      },
+      {
+        "name": "filter",
+        "base": "flash",
+        "color": "yellow"
+      },
+      {
+        "name": "enum",
+        "base": "hex",
+        "color": "cyan"
+      },
+      {
+        "name": "entity",
+        "base": "database",
+        "color": "green"
+      },
+      {
+        "name": "decorator",
+        "base": "d",
+        "color": "purple"
+      },
+      {
+        "name": "config",
+        "base": "c",
+        "color": "cyan"
+      },
+      {
+        "name": "type",
+        "base": "typescript",
+        "color": "blue"
+      },
+      {
+        "name": "strategy",
+        "base": "scheme",
+        "color": "red"
+      },
+      {
+        "name": "dto",
+        "base": "d",
+        "color": "teal"
+      },
+      {
+        "name": "dto",
+        "base": "d",
+        "color": "teal"
+      },
+      {
+        "name": "gateaway",
+        "base": "craco",
+        "color": "pink"
+      }
+    ]
+  }
+}

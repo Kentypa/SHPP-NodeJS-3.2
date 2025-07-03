@@ -1,24 +1,25 @@
-import { DataSource } from "typeorm/data-source/DataSource";
-import { DataSourceOptions } from "typeorm/data-source/DataSourceOptions";
-import { User } from "../shared/entity/User";
-import { SeederOptions } from "typeorm-extension/dist/seeder/type";
+import { Pool, PoolConfig } from "pg";
+import path from "path";
 
-let connectionOptions: DataSourceOptions & SeederOptions = {
-  type: "postgres",
+const projectRoot = path.resolve(__dirname, "../..");
+export const UPLOADS_DIR = path.join(projectRoot, "uploads");
+
+export interface DatabaseConfig extends PoolConfig {
+  host: string;
+  port: number;
+  user: string;
+  password: string;
+  database: string;
+}
+
+const dbConfig: DatabaseConfig = {
   host: process.env.DB_HOST || "db",
   port: parseInt(process.env.POSTGRES_PORT || "5432", 10),
-  username: process.env.DB_USERNAME || "kentadmin",
+  user: process.env.DB_USERNAME || "kentadmin",
   password: process.env.DB_PASSWORD || "1234",
   database: process.env.DB_DATABASE || "kentdb",
-  synchronize: true,
-  logging: true,
-  entities: ["src/shared/entity/*{.ts,.js}"],
-  migrations: ["src/db/migration/*{.ts,.js}"],
-  migrationsRun: true,
-  seeds: ["src/db/seed/**/*{.ts,.js}"],
-  factories: ["src/db/factory/**/*{.ts,.js}"],
 };
 
-export default new DataSource({
-  ...connectionOptions,
-});
+export const pool = new Pool(dbConfig);
+
+export default dbConfig;

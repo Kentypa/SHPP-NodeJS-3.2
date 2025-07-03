@@ -7,7 +7,7 @@ import { authService } from "../../services/auth-service";
 import { useNavigate } from "react-router";
 
 export const AdminPage: FC = () => {
-  const { logout } = authService("/api/v1/");
+  const { logout } = authService("/admin/api/v1/");
   const queryClient = useQueryClient();
   const nav = useNavigate();
 

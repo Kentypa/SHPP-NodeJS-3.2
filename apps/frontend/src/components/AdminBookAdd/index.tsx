@@ -4,14 +4,14 @@ import { booksService } from "../../services/books-service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const AdminBookAdd: FC = () => {
-  const { addBook } = booksService("api/v1/");
+  const { addBook } = booksService("admin/api/v1/");
 
   const queryClient = useQueryClient();
 
   const addBookMutation = useMutation({
     mutationFn: addBook,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["books"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-books"] });
     },
   });
 

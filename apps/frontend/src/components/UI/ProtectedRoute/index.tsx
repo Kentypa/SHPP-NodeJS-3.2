@@ -1,15 +1,15 @@
 import { Navigate, Outlet } from "react-router";
-import React, { memo, useEffect, useState } from "react";
+import { FC, memo, useEffect, useState } from "react";
 import { api } from "../../../config/axios-config";
 
-export const ProtectedRoute: React.FC = memo(() => {
+export const ProtectedRoute: FC = memo(() => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await api.get("/api/v1/validate");
+        const response = await api.get("/admin/api/v1/validate");
 
         if (response.status === 200) {
           setIsAuthenticated(true);
