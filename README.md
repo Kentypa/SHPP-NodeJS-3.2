@@ -58,9 +58,9 @@ docker-compose down
 ## Project Structure
 
 ```bash
-.
 ├── apps
 │   ├── backend
+│   │   ├── backups
 │   │   ├── Dockerfile
 │   │   ├── express.d.ts
 │   │   ├── package.json
@@ -83,17 +83,19 @@ docker-compose down
 │   │   │   │   └── index.ts
 │   │   │   ├── services
 │   │   │   │   ├── authService.service.ts
+│   │   │   │   ├── backupScheduler.service.ts
 │   │   │   │   ├── bookService.service.ts
-│   │   │   │   ├── cleanupScheduler.service.ts
-│   │   │   │   └── backupScheduler.service.ts
+│   │   │   │   └── cleanupScheduler.service.ts
 │   │   │   ├── shared
-│   │   │   │   ├── entity
+│   │   │   │   ├── entities
 │   │   │   │   │   ├── Author.ts
 │   │   │   │   │   ├── Book.ts
 │   │   │   │   │   └── User.ts
 │   │   │   │   ├── enum
 │   │   │   │   │   ├── cron-expression.enum.ts
 │   │   │   │   │   └── role.enum.ts
+│   │   │   │   ├── types
+│   │   │   │   │   └── authRequest.type.ts
 │   │   │   │   └── utils
 │   │   │   │       └── database.ts
 │   │   │   └── sql
@@ -103,6 +105,7 @@ docker-compose down
 │   │   │       └── seeds
 │   │   │           └── admin_user.sql
 │   │   ├── tsconfig.json
+│   │   ├── uploads
 │   │   └── yarn.lock
 │   └── frontend
 │       ├── Dockerfile
@@ -175,9 +178,11 @@ docker-compose down
 │       ├── vite.config.ts
 │       └── yarn.lock
 ├── database.env
+├── database-prototype.dbml
 ├── docker-compose.yml
 ├── package.json
-└── README.md
+├── README.md
+└── shpp-nodejs-3.2.code-workspace
 ```
 
 ## Usage
