@@ -41,7 +41,7 @@ export const basicAuth = async (
       return res.status(401).send("Invalid authentication credentials");
     }
 
-    (req as any).user = user;
+    req.user = user;
 
     return next();
   } catch (error) {
