@@ -1,6 +1,6 @@
 import { Response, NextFunction } from "express";
 import { pool } from "../config/db.config";
-import { User } from "../shared/entity/User";
+import { User } from "../shared/entities/User";
 import { AuthRequest } from "../shared/types/authRequest.type";
 
 export const basicAuth = async (

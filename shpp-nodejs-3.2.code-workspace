@@ -138,6 +138,12 @@
         "base": "global",
         "color": "pink-400",
         "folderNames": ["gateaways"]
+      },
+      {
+        "name": "migrations",
+        "base": "database",
+        "color": "red-400",
+        "folderNames": ["migrations"]
       }
     ],
     "material-icon-theme.files.associations": {
