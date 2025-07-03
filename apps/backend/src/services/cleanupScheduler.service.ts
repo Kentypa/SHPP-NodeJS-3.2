@@ -40,7 +40,7 @@ export const cleanupDeletedBooks = async () => {
 
           await fs.unlink(imagePath);
           console.log(`Successfully deleted image: ${book.image}`);
-        } catch (fileError: any) {
+        } catch (fileError) {
           if (fileError.code === "ENOENT") {
             console.log(
               `Image file not found (already deleted): ${book.image}`

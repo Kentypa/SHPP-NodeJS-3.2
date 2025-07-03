@@ -1,13 +1,14 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import { pool } from "../config/db.config";
 import { User } from "../shared/entity/User";
+import { AuthRequest } from "../shared/types/authRequest.type";
 
 export const basicAuth = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers.authorization;
+  const authHeader = req.headers["authorization"];
 
   if (!authHeader?.startsWith("Basic ")) {
     res.setHeader("WWW-Authenticate", "Basic");
