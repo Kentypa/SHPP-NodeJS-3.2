@@ -27,7 +27,7 @@ cp .env.example .env
 ### Install Backend Dependencies
 
 ```bash
-cd .../backend
+cd ../backend
 yarn install
 ```
 
